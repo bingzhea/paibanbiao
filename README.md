@@ -2,6 +2,10 @@
 
 一个面向小规模团队的离线休假排班工具。项目由单个 HTML 文件组成，无需安装依赖或部署服务器，使用浏览器即可维护人员、节假日和月度休假计划。
 
+## 在线使用
+
+[打开工作排班表](https://bingzhea.github.io/paibanbiao/)
+
 ## 功能
 
 - 人员新增、改名、启用和停用
@@ -35,8 +39,10 @@
 
 ```text
 paibanbiao/
+├── index.html     # GitHub Pages 入口
 ├── worklog.html   # 排班工具主页面
 ├── README.md      # 项目说明
+├── LICENSE        # MIT 开源许可证
 └── .gitignore     # Git 忽略规则
 ```
 
@@ -48,4 +54,4 @@ paibanbiao/
 
 ## 许可证
 
-当前项目尚未声明开源许可证。在添加许可证前，默认保留全部权利。
+本项目采用 [MIT License](./LICENSE)，版权所有 © 2026 bingzhea。
