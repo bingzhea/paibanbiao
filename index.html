@@ -6,11 +6,15 @@
   <meta http-equiv="refresh" content="0; url=./worklog.html">
   <title>Team Time-Off Planner / 工作排班表</title>
   <script>
-    const page = /^en(?:-|$)/i.test(navigator.language || '') ? './worklog-en.html' : './worklog.html';
+    const language = navigator.language || '';
+    const page = /^ja(?:-|$)/i.test(language) ? './worklog-ja.html'
+      : /^ko(?:-|$)/i.test(language) ? './worklog-ko.html'
+      : /^en(?:-|$)/i.test(language) ? './worklog-en.html'
+      : './worklog.html';
     location.replace(`${page}${location.search}${location.hash}`);
   </script>
 </head>
 <body>
-  <p><a href="./worklog.html">中文版</a> · <a href="./worklog-en.html">English</a></p>
+  <p><a href="./worklog.html">中文版</a> · <a href="./worklog-en.html">English</a> · <a href="./worklog-ja.html">日本語</a> · <a href="./worklog-ko.html">한국어</a></p>
 </body>
 </html>

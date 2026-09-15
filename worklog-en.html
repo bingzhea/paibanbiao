@@ -36,6 +36,7 @@
     h1 { margin: 0; font-size: clamp(1.5rem, 3vw, 2.15rem); letter-spacing: .04em; }
     .subtitle { margin: 4px 0 0; color: #d7e5ff; font-size: .92rem; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 9px; }
+    .language-select { width: auto; min-width: 118px; border-color: rgba(255,255,255,.28); background: #fff; font-weight: 700; }
     .app { max-width: 1500px; margin: 24px auto 48px; padding: 0 clamp(14px, 3vw, 30px); }
     .zone { margin-bottom: 22px; }
     .zone-title { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font-size: 1.18rem; color: var(--navy); }
@@ -117,7 +118,9 @@
         <p class="subtitle">Staff, holidays, and monthly time-off planning</p>
       </div>
       <div class="toolbar" aria-label="Data actions">
-        <a class="btn secondary" href="./worklog.html">Chinese</a>
+        <select class="language-select" id="languageSelect" aria-label="Choose language">
+          <option value="worklog.html">中文</option><option value="worklog-en.html" selected>English</option><option value="worklog-ja.html">日本語</option><option value="worklog-ko.html">한국어</option>
+        </select>
         <button class="btn secondary" id="exportBtn" type="button">Export backup</button>
         <button class="btn secondary" id="importBtn" type="button">Restore backup</button>
         <input class="hidden" id="importFile" type="file" accept="application/json,.json">
@@ -541,6 +544,7 @@
       saveData(); renderEditCalendar(); renderDisplayCalendar(); toast('Monthly schedule confirmed');
     });
 
+    el('languageSelect').addEventListener('change', event => { location.href = `./${event.target.value}`; });
     el('exportBtn').addEventListener('click', () => {
       downloadJSON(data, backupName());
       toast('Backup exported');
@@ -569,4 +573,3 @@
   </script>
 </body>
 </html>
-
