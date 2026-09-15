@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="离线使用的人员休假排班与月度统计工具">
-  <title>工作排班表</title>
+  <meta name="description" content="Offline team time-off scheduling and monthly overview">
+  <title>Team Time-Off Planner</title>
   <style>
     :root {
       color-scheme: light;
@@ -23,7 +23,7 @@
       --amber: #a9640d;
       --amber-soft: #fff6df;
       --shadow: 0 14px 36px rgba(25, 42, 70, .08);
-      font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+      font-family: "Segoe UI", Arial, sans-serif;
     }
     * { box-sizing: border-box; }
     body { margin: 0; color: var(--ink); background: var(--canvas); font-size: 16px; line-height: 1.5; }
@@ -113,13 +113,13 @@
   <header class="topbar">
     <div class="topbar-inner">
       <div>
-        <h1>工作排班表</h1>
-        <p class="subtitle">人员、节假日与月度休假排班</p>
+        <h1>Team Time-Off Planner</h1>
+        <p class="subtitle">Staff, holidays, and monthly time-off planning</p>
       </div>
-      <div class="toolbar" aria-label="数据操作">
-        <a class="btn secondary" href="./worklog-en.html" lang="en">English</a>
-        <button class="btn secondary" id="exportBtn" type="button">导出备份</button>
-        <button class="btn secondary" id="importBtn" type="button">恢复备份</button>
+      <div class="toolbar" aria-label="Data actions">
+        <a class="btn secondary" href="./worklog.html">Chinese</a>
+        <button class="btn secondary" id="exportBtn" type="button">Export backup</button>
+        <button class="btn secondary" id="importBtn" type="button">Restore backup</button>
         <input class="hidden" id="importFile" type="file" accept="application/json,.json">
       </div>
     </div>
@@ -127,24 +127,24 @@
 
   <main class="app">
     <section class="zone" aria-labelledby="maintainTitle">
-      <h2 class="zone-title" id="maintainTitle">维护栏</h2>
+      <h2 class="zone-title" id="maintainTitle">Setup</h2>
       <div class="grid">
         <article class="card">
-          <div class="card-head"><h2>人员维护</h2><span class="badge" id="staffCount">0 人在职</span></div>
+          <div class="card-head"><h2>Staff</h2><span class="badge" id="staffCount">0 active</span></div>
           <form class="form-row" id="staffForm">
-            <input id="staffName" maxlength="20" autocomplete="off" placeholder="输入人员姓名" aria-label="人员姓名" required>
-            <button class="btn" type="submit">添加人员</button>
+            <input id="staffName" maxlength="20" autocomplete="off" placeholder="Enter staff name" aria-label="Staff name" required>
+            <button class="btn" type="submit">Add staff member</button>
           </form>
           <div class="list" id="staffList"></div>
         </article>
 
         <article class="card">
-          <div class="card-head"><h2>节假日维护</h2><span class="badge" id="holidayCount">0 条记录</span></div>
+          <div class="card-head"><h2>Holidays</h2><span class="badge" id="holidayCount">0 entries</span></div>
           <form class="form-row holiday-form" id="holidayForm">
-            <input id="holidayTitle" maxlength="30" autocomplete="off" placeholder="假日类型，如：春节" aria-label="假日类型" required>
-            <input id="holidayStart" type="date" aria-label="开始日期" required>
-            <input id="holidayEnd" type="date" aria-label="结束日期" required>
-            <button class="btn" type="submit">保存假日</button>
+            <input id="holidayTitle" maxlength="30" autocomplete="off" placeholder="Holiday name, e.g. Bank Holiday" aria-label="Holiday name" required>
+            <input id="holidayStart" type="date" aria-label="Start date" required>
+            <input id="holidayEnd" type="date" aria-label="End date" required>
+            <button class="btn" type="submit">Save holiday</button>
           </form>
           <div class="list" id="holidayList"></div>
         </article>
@@ -152,34 +152,34 @@
     </section>
 
     <section class="zone" aria-labelledby="scheduleTitle">
-      <h2 class="zone-title" id="scheduleTitle">排班栏</h2>
+      <h2 class="zone-title" id="scheduleTitle">Schedule</h2>
       <div class="grid schedule-grid">
         <article class="card">
-          <div class="card-head"><h2>休假排班</h2><span class="badge">休息天数不限</span></div>
+          <div class="card-head"><h2>Time-Off Planner</h2><span class="badge">No monthly limit</span></div>
           <div class="control-row">
-            <label>选择人员<select id="scheduleStaff"></select></label>
-            <label>选择月份<input id="scheduleMonth" type="month"></label>
+            <label>Staff member<select id="scheduleStaff"></select></label>
+            <label>Month<input id="scheduleMonth" type="month"></label>
           </div>
           <div class="status-strip">
-            <div id="scheduleStatus">请选择人员开始排班</div>
+            <div id="scheduleStatus">Select a staff member to begin</div>
             <div class="item-actions">
-              <button class="btn success" id="editScheduleBtn" type="button" disabled>开始编辑</button>
-              <button class="btn secondary" id="confirmScheduleBtn" type="button" disabled>确认本月排班</button>
+              <button class="btn success" id="editScheduleBtn" type="button" disabled>Start editing</button>
+              <button class="btn secondary" id="confirmScheduleBtn" type="button" disabled>Confirm month</button>
             </div>
           </div>
           <div id="editCalendar"></div>
           <div class="legend">
-            <span><i class="dot leave"></i>已选休息</span>
-            <span><i class="dot"></i>可安排工作日</span>
-            <span><i class="dot blocked"></i>周末或节假日，可安排休息</span>
+            <span><i class="dot leave"></i>Selected time off</span>
+            <span><i class="dot"></i>Available day</span>
+            <span><i class="dot blocked"></i>Weekend or holiday (time off allowed)</span>
           </div>
-          <div class="notice">选择人员和月份后，点击“开始编辑”才能调整休息日期；确认后保存，退出编辑则放弃本次修改。</div>
+          <div class="notice">Choose a staff member and month, then select Start editing to change time-off dates. Confirm to save, or exit editing to discard changes.</div>
         </article>
 
         <article class="card">
-          <div class="card-head"><h2>排班信息</h2><span class="badge">当日休息人数</span></div>
+          <div class="card-head"><h2>Monthly Overview</h2><span class="badge">People off each day</span></div>
           <div class="control-row">
-            <label>查看月份<input id="displayMonth" type="month"></label>
+            <label>View month<input id="displayMonth" type="month"></label>
           </div>
           <div class="summary" id="monthSummary"></div>
           <div id="displayCalendar"></div>
@@ -193,7 +193,9 @@
   (() => {
     'use strict';
     const STORAGE_KEY = 'work-schedule-data-v1';
-    const weekNames = ['一', '二', '三', '四', '五', '六', '日'];
+    const isUSLocale = /^en-US/i.test(navigator.language || '');
+    const displayLocale = isUSLocale ? 'en-US' : 'en-GB';
+    const weekNames = isUSLocale ? ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] : ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
     const el = id => document.getElementById(id);
     const currentMonth = () => {
       const d = new Date();
@@ -216,7 +218,7 @@
     }
 
     function normalizeData(input) {
-      if (!input || typeof input !== 'object') throw new Error('数据格式无效');
+      if (!input || typeof input !== 'object') throw new Error('Invalid data format');
       return {
         version: 1,
         staff: Array.isArray(input.staff) ? input.staff.map(s => ({ id: String(s.id), name: String(s.name || '').trim(), active: s.active !== false })).filter(s => s.id && s.name) : [],
@@ -245,9 +247,13 @@
     function dayOfWeek(iso) { return new Date(`${iso}T00:00:00`).getDay(); }
     function isWeekend(iso) { const d = dayOfWeek(iso); return d === 0 || d === 6; }
     function holidayFor(iso) { return data.holidays.find(h => h.start <= iso && h.end >= iso); }
+    function formatDateOnly(iso) {
+      const [y,m,d] = iso.split('-').map(Number);
+      return new Intl.DateTimeFormat(displayLocale,{year:'numeric',month:'short',day:'numeric'}).format(new Date(y,m-1,d));
+    }
     function formatConfirmationDate(value) {
       const date = new Date(value);
-      return Number.isNaN(date.getTime()) ? '确认时间未知' : `${date.getMonth() + 1}月${date.getDate()}日确认`;
+      return Number.isNaN(date.getTime()) ? 'Confirmation date unavailable' : `${new Intl.DateTimeFormat(displayLocale,{month:'short',day:'numeric'}).format(date)} confirmed`;
     }
     function getTodayISO() {
       const today = new Date();
@@ -282,34 +288,34 @@
 
     function renderStaff() {
       const activeCount = data.staff.filter(s => s.active).length;
-      el('staffCount').textContent = `${activeCount} 人在职`;
+      el('staffCount').textContent = `${activeCount} active`;
       const list = el('staffList');
       if (!data.staff.length) {
-        list.innerHTML = '<div class="empty">尚未添加人员</div>';
+        list.innerHTML = '<div class="empty">No staff members added</div>';
         return;
       }
       list.innerHTML = data.staff.map(s => `
         <div class="list-item ${s.active ? '' : 'inactive'}">
-          <div class="item-main"><div class="item-title">${escapeHTML(s.name)}</div><div class="item-meta">${s.active ? '在职' : '已停用 · 保留历史排班'}</div></div>
+          <div class="item-main"><div class="item-title">${escapeHTML(s.name)}</div><div class="item-meta">${s.active ? 'Active' : 'Inactive · schedule history retained'}</div></div>
           <div class="item-actions">
-            <button class="btn secondary small" data-action="rename-staff" data-id="${s.id}" type="button">改名</button>
-            <button class="btn secondary small" data-action="toggle-staff" data-id="${s.id}" type="button">${s.active ? '停用' : '启用'}</button>
-            <button class="btn danger small" data-action="delete-staff" data-id="${s.id}" type="button">删除</button>
+            <button class="btn secondary small" data-action="rename-staff" data-id="${s.id}" type="button">Rename</button>
+            <button class="btn secondary small" data-action="toggle-staff" data-id="${s.id}" type="button">${s.active ? 'Deactivate' : 'Activate'}</button>
+            <button class="btn danger small" data-action="delete-staff" data-id="${s.id}" type="button">Delete</button>
           </div>
         </div>`).join('');
     }
 
     function renderHolidays() {
-      el('holidayCount').textContent = `${data.holidays.length} 条记录`;
+      el('holidayCount').textContent = `${data.holidays.length} entries`;
       const list = el('holidayList');
       if (!data.holidays.length) {
-        list.innerHTML = '<div class="empty">尚未维护节假日</div>';
+        list.innerHTML = '<div class="empty">No holidays added</div>';
         return;
       }
       list.innerHTML = [...data.holidays].sort((a,b) => a.start.localeCompare(b.start)).map(h => `
         <div class="list-item">
-          <div class="item-main"><div class="item-title">${escapeHTML(h.title)}</div><div class="item-meta">${h.start} 至 ${h.end}</div></div>
-          <div class="item-actions"><button class="btn danger small" data-action="delete-holiday" data-id="${h.id}" type="button">删除</button></div>
+          <div class="item-main"><div class="item-title">${escapeHTML(h.title)}</div><div class="item-meta">${formatDateOnly(h.start)} – ${formatDateOnly(h.end)}</div></div>
+          <div class="item-actions"><button class="btn danger small" data-action="delete-holiday" data-id="${h.id}" type="button">Delete</button></div>
         </div>`).join('');
     }
 
@@ -317,21 +323,21 @@
       const select = el('scheduleStaff');
       const before = select.value;
       const active = data.staff.filter(s => s.active);
-      const placeholder = active.length ? '请选择人员' : '请先添加在职人员';
+      const placeholder = active.length ? 'Select a staff member' : 'Add an active staff member first';
       select.innerHTML = `<option value="">${placeholder}</option>${active.map(s => `<option value="${s.id}">${escapeHTML(s.name)}</option>`).join('')}`;
       if (active.some(s => s.id === before)) select.value = before;
     }
 
     function calendarMarkup(month, mode) {
-      if (!/^\d{4}-\d{2}$/.test(month)) return '<div class="empty">请选择月份</div>';
+      if (!/^\d{4}-\d{2}$/.test(month)) return '<div class="empty">Select a month</div>';
       const firstISO = `${month}-01`;
       const first = dayOfWeek(firstISO);
-      const mondayOffset = (first + 6) % 7;
+      const calendarOffset = isUSLocale ? first : (first + 6) % 7;
       const total = daysInMonth(month);
       const today = new Date();
       const todayISO = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-      let html = `<div class="calendar">${weekNames.map(n => `<div class="weekday">周${n}</div>`).join('')}`;
-      for (let i = 0; i < mondayOffset; i++) html += '<div class="day blank" aria-hidden="true"></div>';
+      let html = `<div class="calendar">${weekNames.map(n => `<div class="weekday">${n}</div>`).join('')}`;
+      for (let i = 0; i < calendarOffset; i++) html += '<div class="day blank" aria-hidden="true"></div>';
       const staffId = el('scheduleStaff').value;
       const savedSchedule = mode === 'edit' && staffId ? getSchedule(staffId, month) : null;
       const leaveDays = editingSchedule && editSession && editSession.staffId === staffId && editSession.month === month
@@ -344,13 +350,13 @@
         const todayClass = iso === todayISO ? ' today' : '';
         if (mode === 'edit') {
           const selected = leaveDays.includes(iso);
-          const dayType = holiday ? escapeHTML(holiday.title) : weekend ? '周末' : '';
-          const note = selected ? `休息${dayType ? ` · ${dayType}` : ''}` : dayType;
+          const dayType = holiday ? escapeHTML(holiday.title) : weekend ? 'Weekend' : '';
+          const note = selected ? `Time off${dayType ? ` · ${dayType}` : ''}` : dayType;
           html += `<button type="button" class="day${weekend ? ' weekend' : ''}${holiday ? ' holiday' : ''}${selected ? ' selected' : ''}${todayClass}" data-date="${iso}" ${!editingSchedule ? 'disabled' : ''} aria-pressed="${selected ? 'true' : 'false'}"><span class="day-num">${day}</span><span class="day-note">${note}</span></button>`;
         } else {
           const count = restCount(iso);
-          const note = holiday ? escapeHTML(holiday.title) : weekend ? '周末' : '';
-          html += `<div class="day display-day${weekend ? ' weekend' : ''}${holiday ? ' holiday' : ''}${todayClass}"><span class="day-num">${day}</span><span class="count">休息 ${count} 人</span><span class="day-note">${note}</span></div>`;
+          const note = holiday ? escapeHTML(holiday.title) : weekend ? 'Weekend' : '';
+          html += `<div class="day display-day${weekend ? ' weekend' : ''}${holiday ? ' holiday' : ''}${todayClass}"><span class="day-num">${day}</span><span class="count">${count} off</span><span class="day-note">${note}</span></div>`;
         }
       }
       return html + '</div>';
@@ -364,12 +370,12 @@
       const confirmBtn = el('confirmScheduleBtn');
       el('scheduleStaff').disabled = editingSchedule;
       el('scheduleMonth').disabled = editingSchedule;
-      editBtn.textContent = editingSchedule ? '退出编辑' : '开始编辑';
+      editBtn.textContent = editingSchedule ? 'Exit editing' : 'Start editing';
       confirmBtn.classList.toggle('success', editingSchedule);
       confirmBtn.classList.toggle('secondary', !editingSchedule);
       if (!staffId || !month) {
         el('editCalendar').innerHTML = '';
-        status.textContent = '请选择人员开始排班';
+        status.textContent = 'Select a staff member to begin';
         editBtn.disabled = true;
         confirmBtn.disabled = true;
         return;
@@ -380,14 +386,14 @@
       editBtn.disabled = false;
       confirmBtn.disabled = !editingSchedule;
       if (editingSchedule && editSession) {
-        status.innerHTML = `<strong>${escapeHTML(staff.name)}</strong> · 计划休 ${editSession.leaveDays.length} 天 · <span class="status-draft">编辑中，尚未保存</span>`;
+        status.innerHTML = `<strong>${escapeHTML(staff.name)}</strong> · ${editSession.leaveDays.length} days planned · <span class="status-draft">Editing · not saved</span>`;
       } else if (schedule.status === 'confirmed') {
         const count = schedule.leaveDays.length;
-        const todayLeave = schedule.leaveDays.includes(getTodayISO()) ? ' · 今日休假' : '';
-        status.innerHTML = `<strong>${escapeHTML(staff.name)}</strong> · 计划休 ${count} 天 · <span class="status-confirmed">${formatConfirmationDate(schedule.confirmedAt)}${todayLeave}</span>`;
+        const todayLeave = schedule.leaveDays.includes(getTodayISO()) ? ' · Off today' : '';
+        status.innerHTML = `<strong>${escapeHTML(staff.name)}</strong> · ${count} days planned · <span class="status-confirmed">${formatConfirmationDate(schedule.confirmedAt)}${todayLeave}</span>`;
       } else {
         const count = schedule.leaveDays.length;
-        status.innerHTML = `<strong>${escapeHTML(staff.name)}</strong> · 计划休 ${count} 天 · <span class="status-draft">未确认，请点击开始编辑</span>`;
+        status.innerHTML = `<strong>${escapeHTML(staff.name)}</strong> · ${count} days planned · <span class="status-draft">Not confirmed · start editing to make changes</span>`;
       }
     }
 
@@ -408,7 +414,7 @@
         if (count) covered++;
       }
       const confirmed = data.staff.filter(s => getSchedule(s.id, month).status === 'confirmed').length;
-      el('monthSummary').innerHTML = `<span class="summary-chip">排班人员 ${data.staff.length} 人</span><span class="summary-chip">已确认 ${confirmed} 人</span><span class="summary-chip">休息合计 ${totalRest} 人次</span><span class="summary-chip">涉及 ${covered} 天</span>`;
+      el('monthSummary').innerHTML = `<span class="summary-chip">${data.staff.length} staff</span><span class="summary-chip">${confirmed} confirmed</span><span class="summary-chip">${totalRest} time-off entries</span><span class="summary-chip">Across ${covered} days</span>`;
     }
 
     function schedulesForStaff(staffId) {
@@ -420,7 +426,7 @@
       data.holidays.push({ id: uid('holiday'), title, start, end });
       saveData();
       renderAll();
-      toast('节假日已保存');
+      toast('Holiday saved');
       return true;
     }
 
@@ -436,7 +442,7 @@
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
-    function backupName(prefix = '工作排班表备份') {
+    function backupName(prefix = 'time-off-planner-backup') {
       const d = new Date();
       const stamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}${String(d.getSeconds()).padStart(2,'0')}`;
       return `${prefix}-${stamp}.json`;
@@ -446,10 +452,10 @@
       event.preventDefault();
       const name = el('staffName').value.trim();
       if (!name) return;
-      if (data.staff.some(s => s.name.toLowerCase() === name.toLowerCase())) return toast('人员姓名不能重复');
+      if (data.staff.some(s => s.name.toLowerCase() === name.toLowerCase())) return toast('Staff names must be unique');
       data.staff.push({ id: uid('staff'), name, active: true });
       el('staffName').value = '';
-      saveData(); renderAll(); toast('人员已添加');
+      saveData(); renderAll(); toast('Staff member added');
     });
 
     el('staffList').addEventListener('click', event => {
@@ -458,17 +464,17 @@
       const staff = data.staff.find(s => s.id === button.dataset.id);
       if (!staff) return;
       if (button.dataset.action === 'rename-staff') {
-        const next = prompt('请输入新姓名：', staff.name);
+        const next = prompt('Enter a new name:', staff.name);
         if (next === null) return;
         const name = next.trim();
-        if (!name) return toast('姓名不能为空');
-        if (data.staff.some(s => s.id !== staff.id && s.name.toLowerCase() === name.toLowerCase())) return toast('人员姓名不能重复');
+        if (!name) return toast('Name cannot be empty');
+        if (data.staff.some(s => s.id !== staff.id && s.name.toLowerCase() === name.toLowerCase())) return toast('Staff names must be unique');
         staff.name = name;
       } else if (button.dataset.action === 'toggle-staff') {
         staff.active = !staff.active;
       } else if (button.dataset.action === 'delete-staff') {
-        if (schedulesForStaff(staff.id).length) return toast('该人员已有排班记录，请使用“停用”保留历史数据');
-        if (!confirm(`确定永久删除“${staff.name}”吗？`)) return;
+        if (schedulesForStaff(staff.id).length) return toast('This staff member has schedule records. Deactivate them to retain history.');
+        if (!confirm(`Permanently delete “${staff.name}”?`)) return;
         data.staff = data.staff.filter(s => s.id !== staff.id);
       }
       saveData(); renderAll();
@@ -480,7 +486,7 @@
       const start = el('holidayStart').value;
       const end = el('holidayEnd').value;
       if (!title || !start || !end) return;
-      if (start > end) return toast('结束日期不能早于开始日期');
+      if (start > end) return toast('End date cannot be before start date');
       if (addHoliday(title, start, end)) event.target.reset();
     });
 
@@ -488,9 +494,9 @@
       const button = event.target.closest('button[data-action="delete-holiday"]');
       if (!button) return;
       const holiday = data.holidays.find(h => h.id === button.dataset.id);
-      if (!holiday || !confirm(`确定删除“${holiday.title}”吗？删除后不会自动恢复此前被取消的休息安排。`)) return;
+      if (!holiday || !confirm(`Delete “${holiday.title}”? Previously removed time-off dates will not be restored automatically.`)) return;
       data.holidays = data.holidays.filter(h => h.id !== holiday.id);
-      saveData(); renderAll(); toast('节假日已删除');
+      saveData(); renderAll(); toast('Holiday deleted');
     });
 
     el('scheduleStaff').addEventListener('change', renderEditCalendar);
@@ -511,7 +517,7 @@
       editingSchedule = false;
       editSession = null;
       renderEditCalendar();
-      toast('已退出编辑，本次修改未保存');
+      toast('Editing exited. Changes were not saved.');
     });
 
     el('editCalendar').addEventListener('click', event => {
@@ -532,12 +538,12 @@
       schedule.confirmedAt = new Date().toISOString();
       editingSchedule = false;
       editSession = null;
-      saveData(); renderEditCalendar(); renderDisplayCalendar(); toast('本月排班已确认');
+      saveData(); renderEditCalendar(); renderDisplayCalendar(); toast('Monthly schedule confirmed');
     });
 
     el('exportBtn').addEventListener('click', () => {
       downloadJSON(data, backupName());
-      toast('备份文件已导出');
+      toast('Backup exported');
     });
     el('importBtn').addEventListener('click', () => el('importFile').click());
     el('importFile').addEventListener('change', async event => {
@@ -546,13 +552,13 @@
       if (!file) return;
       try {
         const restored = normalizeData(JSON.parse(await file.text()));
-        if (!confirm(`恢复备份将覆盖当前全部数据。\n备份中包含 ${restored.staff.length} 名人员、${restored.holidays.length} 条节假日记录。是否继续？`)) return;
-        downloadJSON(data, backupName('恢复前自动备份'));
+        if (!confirm(`Restoring this backup will replace all current data.\nIt contains ${restored.staff.length} staff and ${restored.holidays.length} holiday entries. Continue?`)) return;
+        downloadJSON(data, backupName('automatic-backup-before-restore'));
         data = restored;
-        saveData(); renderAll(); toast('备份恢复成功');
+        saveData(); renderAll(); toast('Backup restored successfully');
       } catch (error) {
         console.error(error);
-        toast('恢复失败：文件不是有效的排班备份');
+        toast('Restore failed: invalid planner backup');
       }
     });
 
@@ -563,3 +569,4 @@
   </script>
 </body>
 </html>
+

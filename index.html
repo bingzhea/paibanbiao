@@ -1,15 +1,16 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="refresh" content="0; url=./worklog.html">
-  <title>工作排班表</title>
+  <title>Team Time-Off Planner / 工作排班表</title>
   <script>
-    location.replace(`./worklog.html${location.search}${location.hash}`);
+    const page = /^en(?:-|$)/i.test(navigator.language || '') ? './worklog-en.html' : './worklog.html';
+    location.replace(`${page}${location.search}${location.hash}`);
   </script>
 </head>
 <body>
-  <p><a href="./worklog.html">进入工作排班表</a></p>
+  <p><a href="./worklog.html">中文版</a> · <a href="./worklog-en.html">English</a></p>
 </body>
 </html>

@@ -4,7 +4,9 @@
 
 ## 在线使用
 
-[打开工作排班表](https://bingzhea.github.io/paibanbiao/)
+[自动选择语言](https://bingzhea.github.io/paibanbiao/) · [中文版](https://bingzhea.github.io/paibanbiao/worklog.html) · [English](https://bingzhea.github.io/paibanbiao/worklog-en.html)
+
+入口页面会根据浏览器语言自动选择中英文版本。两个页面使用相同的数据格式和浏览器本地存储。
 
 ## 功能
 
@@ -40,7 +42,8 @@
 ```text
 paibanbiao/
 ├── index.html     # GitHub Pages 入口
-├── worklog.html   # 排班工具主页面
+├── worklog.html   # 中文排班工具
+├── worklog-en.html # 英文排班工具（自动适配美式/英式日历）
 ├── README.md      # 项目说明
 ├── LICENSE        # MIT 开源许可证
 └── .gitignore     # Git 忽略规则
