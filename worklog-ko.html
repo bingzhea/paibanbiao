@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Offline team time-off scheduling and monthly overview">
+  <title>근무·휴무 일정표</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #647087;
+      --line: #dce2eb;
+      --paper: #ffffff;
+      --canvas: #f3f6fa;
+      --blue: #225bca;
+      --blue-soft: #e8f0ff;
+      --navy: #102b5c;
+      --red: #c53d4d;
+      --red-soft: #fff0f1;
+      --green: #17795c;
+      --green-soft: #e8f8f2;
+      --amber: #a9640d;
+      --amber-soft: #fff6df;
+      --shadow: 0 14px 36px rgba(25, 42, 70, .08);
+      font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--canvas); font-size: 16px; line-height: 1.5; }
+    button, input, select { font: inherit; }
+    button, select, input { min-height: 42px; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid rgba(34,91,202,.25); outline-offset: 2px; }
+    .topbar { background: linear-gradient(115deg, #102b5c, #1d4a96); color: white; padding: 22px clamp(18px, 4vw, 48px); box-shadow: var(--shadow); }
+    .topbar-inner { max-width: 1500px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    h1 { margin: 0; font-size: clamp(1.5rem, 3vw, 2.15rem); letter-spacing: .04em; }
+    .subtitle { margin: 4px 0 0; color: #d7e5ff; font-size: .92rem; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 9px; }
+    .language-select { width: auto; min-width: 118px; border-color: rgba(255,255,255,.28); background: #fff; font-weight: 700; }
+    .app { max-width: 1500px; margin: 24px auto 48px; padding: 0 clamp(14px, 3vw, 30px); }
+    .zone { margin-bottom: 22px; }
+    .zone-title { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font-size: 1.18rem; color: var(--navy); }
+    .zone-title::before { content: ""; width: 5px; height: 22px; border-radius: 9px; background: var(--blue); }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+    .schedule-grid { grid-template-columns: minmax(480px, 1.03fr) minmax(480px, .97fr); }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: 20px; min-width: 0; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .card h2 { margin: 0; font-size: 1.08rem; }
+    .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 10px; background: var(--blue-soft); color: var(--blue); font-size: .8rem; font-weight: 700; }
+    .form-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; margin-bottom: 14px; }
+    .holiday-form { grid-template-columns: minmax(130px,1.2fr) minmax(130px,1fr) minmax(130px,1fr) auto; }
+    input, select { width: 100%; border: 1px solid #cbd3df; border-radius: 10px; background: #fff; color: var(--ink); padding: 8px 11px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 10px; padding: 9px 15px; font-weight: 700; background: var(--blue); color: white; text-decoration: none; }
+    .btn:hover { filter: brightness(.96); }
+    .btn.secondary { background: #e9edf4; color: #263247; }
+    .btn.danger { background: var(--red-soft); color: var(--red); }
+    .btn.success { background: var(--green); }
+    .btn.small { min-height: 34px; padding: 5px 10px; font-size: .83rem; }
+    .empty { padding: 24px 14px; text-align: center; color: var(--muted); border: 1px dashed #ccd4df; border-radius: 12px; background: #fafbfd; }
+    .list { display: grid; gap: 8px; max-height: 220px; overflow: auto; padding-right: 3px; }
+    .list-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 11px; background: #fbfcfe; }
+    .item-main { min-width: 0; }
+    .item-title { font-weight: 700; overflow-wrap: anywhere; }
+    .item-meta { color: var(--muted); font-size: .82rem; }
+    .item-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+    .inactive { opacity: .62; }
+    .control-row { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(150px, .8fr); gap: 12px; margin-bottom: 14px; }
+    label { display: grid; gap: 6px; color: #39465c; font-size: .9rem; font-weight: 700; }
+    .status-strip { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 4px 0 12px; padding: 11px 12px; border-radius: 11px; background: #f6f8fb; border: 1px solid var(--line); }
+    .status-strip strong { color: var(--navy); }
+    .status-draft { color: var(--amber); }
+    .status-confirmed { color: var(--green); }
+    .legend { display: flex; flex-wrap: wrap; gap: 13px; color: var(--muted); font-size: .82rem; margin: 10px 0 0; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .dot { width: 11px; height: 11px; border-radius: 3px; background: #fff; border: 1px solid #bcc6d4; }
+    .dot.leave { background: var(--blue); border-color: var(--blue); }
+    .dot.blocked { background: #edf0f4; border-color: #d4dae3; }
+    .calendar { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; }
+    .weekday { min-height: 38px; display: grid; place-items: center; background: #eef3fa; font-size: .82rem; font-weight: 700; color: #536076; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .day { position: relative; min-height: 76px; border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #fff; color: var(--ink); padding: 8px; text-align: left; border-radius: 0; }
+    .day:hover:not(:disabled) { background: #f2f6ff; }
+    .day:disabled { cursor: not-allowed; }
+    .day.blank { background: #f8fafc; }
+    .day.weekend, .day.holiday { background: #f0f2f5; color: #8a94a5; }
+    .day.selected { background: linear-gradient(145deg, #285fc9, #17499e); color: #fff; }
+    .day.today::after { content: ""; position: absolute; top: 7px; right: 7px; width: 7px; height: 7px; border-radius: 50%; background: #f3a51c; }
+    .day-num { display: block; font-weight: 800; font-size: 1rem; }
+    .day-note { display: block; margin-top: 10px; font-size: .72rem; line-height: 1.25; overflow-wrap: anywhere; }
+    .display-day { min-height: 82px; }
+    .count { display: block; margin-top: 11px; color: var(--blue); font-weight: 800; font-size: .8rem; }
+    .display-day.weekend .count, .display-day.holiday .count { color: #7b8697; }
+    .summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+    .summary-chip { padding: 7px 10px; border-radius: 9px; background: var(--blue-soft); color: #17499e; font-size: .83rem; font-weight: 700; }
+    .toast { position: fixed; right: 22px; bottom: 22px; z-index: 20; max-width: min(420px, calc(100vw - 44px)); padding: 13px 16px; border-radius: 11px; background: #172033; color: #fff; box-shadow: 0 12px 32px rgba(0,0,0,.2); opacity: 0; transform: translateY(12px); pointer-events: none; transition: .2s ease; }
+    .toast.show { opacity: 1; transform: none; }
+    .notice { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--amber-soft); color: #7d4b08; font-size: .86rem; }
+    .hidden { display: none !important; }
+    @media (max-width: 1040px) {
+      .grid, .schedule-grid { grid-template-columns: 1fr; }
+      .topbar-inner { align-items: flex-start; flex-direction: column; }
+    }
+    @media (max-width: 650px) {
+      .holiday-form, .control-row { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .card { padding: 14px; border-radius: 13px; }
+      .day { min-height: 65px; padding: 6px; }
+      .day-note, .count { font-size: .68rem; margin-top: 7px; }
+      .toolbar { width: 100%; }
+      .toolbar .btn { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div>
+        <h1>근무·휴무 일정표</h1>
+        <p class="subtitle">직원·공휴일·월별 휴무 일정 관리</p>
+      </div>
+      <div class="toolbar" aria-label="Data actions">
+        <select class="language-select" id="languageSelect" aria-label="언어 선택">
+          <option value="worklog.html">中文</option><option value="worklog-en.html">English</option><option value="worklog-ja.html">日本語</option><option value="worklog-ko.html" selected>한국어</option>
+        </select>
+        <button class="btn secondary" id="exportBtn" type="button">백업 내보내기</button>
+        <button class="btn secondary" id="importBtn" type="button">백업 복원</button>
+        <input class="hidden" id="importFile" type="file" accept="application/json,.json">
+      </div>
+    </div>
+  </header>
+
+  <main class="app">
+    <section class="zone" aria-labelledby="maintainTitle">
+      <h2 class="zone-title" id="maintainTitle">기본 설정</h2>
+      <div class="grid">
+        <article class="card">
+          <div class="card-head"><h2>직원</h2><span class="badge" id="staffCount">재직 0명</span></div>
+          <form class="form-row" id="staffForm">
+            <input id="staffName" maxlength="20" autocomplete="off" placeholder="직원 이름 입력" aria-label="직원 이름" required>
+            <button class="btn" type="submit">직원 추가</button>
+          </form>
+          <div class="list" id="staffList"></div>
+        </article>
+
+        <article class="card">
+          <div class="card-head"><h2>공휴일 관리</h2><span class="badge" id="holidayCount">0건</span></div>
+          <form class="form-row holiday-form" id="holidayForm">
+            <input id="holidayTitle" maxlength="30" autocomplete="off" placeholder="공휴일 이름" aria-label="공휴일 이름" required>
+            <input id="holidayStart" type="date" aria-label="시작일" required>
+            <input id="holidayEnd" type="date" aria-label="종료일" required>
+            <button class="btn" type="submit">공휴일 저장</button>
+          </form>
+          <div class="list" id="holidayList"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="zone" aria-labelledby="scheduleTitle">
+      <h2 class="zone-title" id="scheduleTitle">휴무 일정</h2>
+      <div class="grid schedule-grid">
+        <article class="card">
+          <div class="card-head"><h2>휴무 일정 편성</h2><span class="badge">월 휴무일 제한 없음</span></div>
+          <div class="control-row">
+            <label>직원<select id="scheduleStaff"></select></label>
+            <label>대상 월<input id="scheduleMonth" type="month"></label>
+          </div>
+          <div class="status-strip">
+            <div id="scheduleStatus">직원을 선택해 주세요</div>
+            <div class="item-actions">
+              <button class="btn success" id="editScheduleBtn" type="button" disabled>편집 시작</button>
+              <button class="btn secondary" id="confirmScheduleBtn" type="button" disabled>이번 달 일정 확정</button>
+            </div>
+          </div>
+          <div id="editCalendar"></div>
+          <div class="legend">
+            <span><i class="dot leave"></i>선택한 휴무일</span>
+            <span><i class="dot"></i>선택 가능일</span>
+            <span><i class="dot blocked"></i>주말·공휴일(휴무 선택 가능)</span>
+          </div>
+          <div class="notice">직원과 대상 월을 선택한 뒤 ‘편집 시작’을 눌러 휴무일을 지정하세요. 확정하면 저장되며 편집을 종료하면 변경 사항이 취소됩니다.</div>
+        </article>
+
+        <article class="card">
+          <div class="card-head"><h2>월간 현황</h2><span class="badge">일별 휴무 인원</span></div>
+          <div class="control-row">
+            <label>조회 월<input id="displayMonth" type="month"></label>
+          </div>
+          <div class="summary" id="monthSummary"></div>
+          <div id="displayCalendar"></div>
+        </article>
+      </div>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+  (() => {
+    'use strict';
+    const STORAGE_KEY = 'work-schedule-data-v1';
+    const isUSLocale=true;
+    const displayLocale='ko-KR';
+    const weekNames=['일','월','화','수','목','금','토'];
+    const el = id => document.getElementById(id);
+    const currentMonth = () => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    };
+    const freshData = () => ({ version: 1, staff: [], holidays: [], schedules: {}, updatedAt: new Date().toISOString() });
+    let data = loadData();
+    let editingSchedule = false;
+    let editSession = null;
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return freshData();
+        return normalizeData(JSON.parse(raw));
+      } catch (error) {
+        console.error(error);
+        return freshData();
+      }
+    }
+
+    function normalizeData(input) {
+      if (!input || typeof input !== 'object') throw new Error('Invalid data format');
+      return {
+        version: 1,
+        staff: Array.isArray(input.staff) ? input.staff.map(s => ({ id: String(s.id), name: String(s.name || '').trim(), active: s.active !== false })).filter(s => s.id && s.name) : [],
+        holidays: Array.isArray(input.holidays) ? input.holidays.map(h => ({ id: String(h.id), title: String(h.title || '').trim(), start: String(h.start || ''), end: String(h.end || '') })).filter(h => h.id && h.title && isISODate(h.start) && isISODate(h.end) && h.start <= h.end) : [],
+        schedules: input.schedules && typeof input.schedules === 'object' ? input.schedules : {},
+        updatedAt: typeof input.updatedAt === 'string' ? input.updatedAt : new Date().toISOString()
+      };
+    }
+
+    function saveData() {
+      data.updatedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function uid(prefix) {
+      return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    }
+
+    function isISODate(value) { return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T00:00:00`).getTime()); }
+    function daysInMonth(month) { const [y, m] = month.split('-').map(Number); return new Date(y, m, 0).getDate(); }
+    function dateISO(month, day) { return `${month}-${String(day).padStart(2, '0')}`; }
+    function dayOfWeek(iso) { return new Date(`${iso}T00:00:00`).getDay(); }
+    function is주말(iso) { const d = dayOfWeek(iso); return d === 0 || d === 6; }
+    function holidayFor(iso) { return data.holidays.find(h => h.start <= iso && h.end >= iso); }
+    function formatDateOnly(iso) {
+      const [y,m,d] = iso.split('-').map(Number);
+      return new Intl.DateTimeFormat(displayLocale,{year:'numeric',month:'short',day:'numeric'}).format(new Date(y,m-1,d));
+    }
+    function formatConfirmationDate(value) {
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? 'Confirmation date unavailable' : `${new Intl.DateTimeFormat(displayLocale,{month:'short',day:'numeric'}).format(date)} confirmed`;
+    }
+    function getTodayISO() {
+      const today = new Date();
+      return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    }
+    function scheduleKey(staffId, month) { return `${staffId}__${month}`; }
+    function getSchedule(staffId, month, create = false) {
+      const key = scheduleKey(staffId, month);
+      if (!data.schedules[key] && create) data.schedules[key] = { leaveDays: [], status: 'draft', confirmedAt: null };
+      const value = data.schedules[key];
+      if (!value) return { leaveDays: [], status: 'draft', confirmedAt: null };
+      if (!Array.isArray(value.leaveDays)) value.leaveDays = [];
+      return value;
+    }
+
+    let toastTimer;
+    function toast(message) {
+      const node = el('toast');
+      node.textContent = message;
+      node.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => node.classList.remove('show'), 3200);
+    }
+
+    function renderAll() {
+      renderStaff();
+      renderHolidays();
+      renderStaffSelect();
+      renderEditCalendar();
+      renderDisplayCalendar();
+    }
+
+    function renderStaff() {
+      const activeCount = data.staff.filter(s => s.active).length;
+      el('staffCount').textContent = `${activeCount} active`;
+      const list = el('staffList');
+      if (!data.staff.length) {
+        list.innerHTML = '<div class="empty">등록된 직원이 없습니다</div>';
+        return;
+      }
+      list.innerHTML = data.staff.map(s => `
+        <div class="list-item ${s.active ? '' : 'inactive'}">
+          <div class="item-main"><div class="item-title">${escapeHTML(s.name)}</div><div class="item-meta">${s.active ? 'Active' : '비활성・기존 일정 유지'}</div></div>
+          <div class="item-actions">
+            <button class="btn secondary small" data-action="rename-staff" data-id="${s.id}" type="button">이름 변경</button>
+            <button class="btn secondary small" data-action="toggle-staff" data-id="${s.id}" type="button">${s.active ? 'Deactivate' : 'Activate'}</button>
+            <button class="btn danger small" data-action="delete-staff" data-id="${s.id}" type="button">삭제</button>
+          </div>
+        </div>`).join('');
+    }
+
+    function renderHolidays() {
+      el('holidayCount').textContent = `${data.holidays.length} entries`;
+      const list = el('holidayList');
+      if (!data.holidays.length) {
+        list.innerHTML = '<div class="empty">등록된 공휴일이 없습니다</div>';
+        return;
+      }
+      list.innerHTML = [...data.holidays].sort((a,b) => a.start.localeCompare(b.start)).map(h => `
+        <div class="list-item">
+          <div class="item-main"><div class="item-title">${escapeHTML(h.title)}</div><div class="item-meta">${formatDateOnly(h.start)} – ${formatDateOnly(h.end)}</div></div>
+          <div class="item-actions"><button class="btn danger small" data-action="delete-holiday" data-id="${h.id}" type="button">삭제</button></div>
+        </div>`).join('');
+    }
+
+    function renderStaffSelect() {
+      const select = el('scheduleStaff');
+      const before = select.value;
+      const active = data.staff.filter(s => s.active);
+      const placeholder = active.length ? '직원 선택' : '재직 직원을 먼저 추가해 주세요';
+      select.innerHTML = `<option value="">${placeholder}</option>${active.map(s => `<option value="${s.id}">${escapeHTML(s.name)}</option>`).join('')}`;
+      if (active.some(s => s.id === before)) select.value = before;
+    }
+
+    function calendarMarkup(month, mode) {
+      if (!/^\d{4}-\d{2}$/.test(month)) return '<div class="empty">대상 월을 선택해 주세요</div>';
+      const firstISO = `${month}-01`;
+      const first = dayOfWeek(firstISO);
+      const calendarOffset = isUSLocale ? first : (first + 6) % 7;
+      const total = daysInMonth(month);
+      const today = new Date();
+      const todayISO = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+      let html = `<div class="calendar">${weekNames.map(n => `<div class="weekday">${n}</div>`).join('')}`;
+      for (let i = 0; i < calendarOffset; i++) html += '<div class="day blank" aria-hidden="true"></div>';
+      const staffId = el('scheduleStaff').value;
+      const savedSchedule = mode === 'edit' && staffId ? getSchedule(staffId, month) : null;
+      const leaveDays = editingSchedule && editSession && editSession.staffId === staffId && editSession.month === month
+        ? editSession.leaveDays
+        : savedSchedule?.leaveDays || [];
+      for (let day = 1; day <= total; day++) {
+        const iso = dateISO(month, day);
+        const weekend = is주말(iso);
+        const holiday = holidayFor(iso);
+        const todayClass = iso === todayISO ? ' today' : '';
+        if (mode === 'edit') {
+          const selected = leaveDays.includes(iso);
+          const dayType = holiday ? escapeHTML(holiday.title) : weekend ? '주말' : '';
+          const note = selected ? `Time off${dayType ? ` · ${dayType}` : ''}` : dayType;
+          html += `<button type="button" class="day${weekend ? ' weekend' : ''}${holiday ? ' holiday' : ''}${selected ? ' selected' : ''}${todayClass}" data-date="${iso}" ${!editingSchedule ? 'disabled' : ''} aria-pressed="${selected ? 'true' : 'false'}"><span class="day-num">${day}</span><span class="day-note">${note}</span></button>`;
+        } else {
+          const count = restCount(iso);
+          const note = holiday ? escapeHTML(holiday.title) : weekend ? '주말' : '';
+          html += `<div class="day display-day${weekend ? ' weekend' : ''}${holiday ? ' holiday' : ''}${todayClass}"><span class="day-num">${day}</span><span class="count">${count} off</span><span class="day-note">${note}</span></div>`;
+        }
+      }
+      return html + '</div>';
+    }
+
+    function renderEditCalendar() {
+      const staffId = el('scheduleStaff').value;
+      const month = el('scheduleMonth').value;
+      const status = el('scheduleStatus');
+      const editBtn = el('editScheduleBtn');
+      const confirmBtn = el('confirmScheduleBtn');
+      el('scheduleStaff').disabled = editingSchedule;
+      el('scheduleMonth').disabled = editingSchedule;
+      editBtn.textContent = editingSchedule ? 'Exit editing' : '편집 시작';
+      confirmBtn.classList.toggle('success', editingSchedule);
+      confirmBtn.classList.toggle('secondary', !editingSchedule);
+      if (!staffId || !month) {
+        el('editCalendar').innerHTML = '';
+        status.textContent = '직원을 선택해 주세요';
+        editBtn.disabled = true;
+        confirmBtn.disabled = true;
+        return;
+      }
+      el('editCalendar').innerHTML = calendarMarkup(month, 'edit');
+      const schedule = getSchedule(staffId, month);
+      const staff = data.staff.find(s => s.id === staffId);
+      editBtn.disabled = false;
+      confirmBtn.disabled = !editingSchedule;
+      if (editingSchedule && editSession) {
+        status.innerHTML = `<strong>${escapeHTML(staff.name)}</strong> · 휴무 예정 ${editSession.leaveDays.length}일 · <span class="status-draft">편집 중・저장되지 않음</span>`;
+      } else if (schedule.status === 'confirmed') {
+        const count = schedule.leaveDays.length;
+        const todayLeave = schedule.leaveDays.includes(getTodayISO()) ? ' · 오늘 휴무' : '';
+        status.innerHTML = `<strong>${escapeHTML(staff.name)}</strong> · 휴무 예정 ${count}일 · <span class="status-confirmed">${formatConfirmationDate(schedule.confirmedAt)}${todayLeave}</span>`;
+      } else {
+        const count = schedule.leaveDays.length;
+        status.innerHTML = `<strong>${escapeHTML(staff.name)}</strong> · 휴무 예정 ${count}일 · <span class="status-draft">미확정・편집을 시작해 주세요</span>`;
+      }
+    }
+
+    function restCount(iso) {
+      const month = iso.slice(0, 7);
+      return data.staff.reduce((sum, staff) => sum + (getSchedule(staff.id, month).leaveDays.includes(iso) ? 1 : 0), 0);
+    }
+
+    function renderDisplayCalendar() {
+      const month = el('displayMonth').value;
+      el('displayCalendar').innerHTML = calendarMarkup(month, 'display');
+      const days = daysInMonth(month);
+      let totalRest = 0;
+      let covered = 0;
+      for (let day = 1; day <= days; day++) {
+        const count = restCount(dateISO(month, day));
+        totalRest += count;
+        if (count) covered++;
+      }
+      const confirmed = data.staff.filter(s => getSchedule(s.id, month).status === 'confirmed').length;
+      el('monthSummary').innerHTML = `<span class="summary-chip">직원 ${data.staff.length}명</span><span class="summary-chip">확정 ${confirmed}명</span><span class="summary-chip">휴무 합계 ${totalRest}명·일</span><span class="summary-chip">총 ${covered}일</span>`;
+    }
+
+    function schedulesForStaff(staffId) {
+      const prefix = `${staffId}__`;
+      return Object.keys(data.schedules).filter(k => k.startsWith(prefix) && data.schedules[k] && data.schedules[k].leaveDays && data.schedules[k].leaveDays.length);
+    }
+
+    function addHoliday(title, start, end) {
+      data.holidays.push({ id: uid('holiday'), title, start, end });
+      saveData();
+      renderAll();
+      toast('공휴일을 저장했습니다');
+      return true;
+    }
+
+    function downloadJSON(payload, filename) {
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function backupName(prefix = 'time-off-planner-backup') {
+      const d = new Date();
+      const stamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}${String(d.getSeconds()).padStart(2,'0')}`;
+      return `${prefix}-${stamp}.json`;
+    }
+
+    el('staffForm').addEventListener('submit', event => {
+      event.preventDefault();
+      const name = el('staffName').value.trim();
+      if (!name) return;
+      if (data.staff.some(s => s.name.toLowerCase() === name.toLowerCase())) return toast('직원 이름s must be unique');
+      data.staff.push({ id: uid('staff'), name, active: true });
+      el('staffName').value = '';
+      saveData(); renderAll(); toast('직원을 추가했습니다');
+    });
+
+    el('staffList').addEventListener('click', event => {
+      const button = event.target.closest('button[data-action]');
+      if (!button) return;
+      const staff = data.staff.find(s => s.id === button.dataset.id);
+      if (!staff) return;
+      if (button.dataset.action === 'rename-staff') {
+        const next = prompt('Enter a new name:', staff.name);
+        if (next === null) return;
+        const name = next.trim();
+        if (!name) return toast('이름을 입력해 주세요');
+        if (data.staff.some(s => s.id !== staff.id && s.name.toLowerCase() === name.toLowerCase())) return toast('직원 이름s must be unique');
+        staff.name = name;
+      } else if (button.dataset.action === 'toggle-staff') {
+        staff.active = !staff.active;
+      } else if (button.dataset.action === 'delete-staff') {
+        if (schedulesForStaff(staff.id).length) return toast('This staff member has schedule records. Deactivate them to retain history.');
+        if (!confirm(`Permanently delete “${staff.name}”?`)) return;
+        data.staff = data.staff.filter(s => s.id !== staff.id);
+      }
+      saveData(); renderAll();
+    });
+
+    el('holidayForm').addEventListener('submit', event => {
+      event.preventDefault();
+      const title = el('holidayTitle').value.trim();
+      const start = el('holidayStart').value;
+      const end = el('holidayEnd').value;
+      if (!title || !start || !end) return;
+      if (start > end) return toast('종료일 cannot be before start date');
+      if (addHoliday(title, start, end)) event.target.reset();
+    });
+
+    el('holidayList').addEventListener('click', event => {
+      const button = event.target.closest('button[data-action="delete-holiday"]');
+      if (!button) return;
+      const holiday = data.holidays.find(h => h.id === button.dataset.id);
+      if (!holiday || !confirm(`Delete “${holiday.title}”? Previously removed time-off dates will not be restored automatically.`)) return;
+      data.holidays = data.holidays.filter(h => h.id !== holiday.id);
+      saveData(); renderAll(); toast('공휴일을 삭제했습니다');
+    });
+
+    el('scheduleStaff').addEventListener('change', renderEditCalendar);
+    el('scheduleMonth').addEventListener('change', renderEditCalendar);
+    el('displayMonth').addEventListener('change', renderDisplayCalendar);
+
+    el('editScheduleBtn').addEventListener('click', () => {
+      const staffId = el('scheduleStaff').value;
+      const month = el('scheduleMonth').value;
+      if (!editingSchedule) {
+        if (!staffId || !month) return;
+        const schedule = getSchedule(staffId, month);
+        editSession = { staffId, month, leaveDays: [...schedule.leaveDays] };
+        editingSchedule = true;
+        renderEditCalendar();
+        return;
+      }
+      editingSchedule = false;
+      editSession = null;
+      renderEditCalendar();
+      toast('편집을 종료했습니다. 변경 사항은 저장되지 않았습니다.');
+    });
+
+    el('editCalendar').addEventListener('click', event => {
+      const button = event.target.closest('button[data-date]');
+      if (!button || button.disabled || !editingSchedule || !editSession) return;
+      const iso = button.dataset.date;
+      if (editSession.leaveDays.includes(iso)) editSession.leaveDays = editSession.leaveDays.filter(d => d !== iso);
+      else editSession.leaveDays.push(iso);
+      editSession.leaveDays.sort();
+      renderEditCalendar();
+    });
+
+    el('confirmScheduleBtn').addEventListener('click', () => {
+      if (!editingSchedule || !editSession) return;
+      const schedule = getSchedule(editSession.staffId, editSession.month, true);
+      schedule.leaveDays = [...editSession.leaveDays];
+      schedule.status = 'confirmed';
+      schedule.confirmedAt = new Date().toISOString();
+      editingSchedule = false;
+      editSession = null;
+      saveData(); renderEditCalendar(); renderDisplayCalendar(); toast('이번 달 일정을 확정했습니다');
+    });
+
+    el('languageSelect').addEventListener('change', event => { location.href = `./${event.target.value}`; });
+    el('exportBtn').addEventListener('click', () => {
+      downloadJSON(data, backupName());
+      toast('백업을 내보냈습니다');
+    });
+    el('importBtn').addEventListener('click', () => el('importFile').click());
+    el('importFile').addEventListener('change', async event => {
+      const file = event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+      try {
+        const restored = normalizeData(JSON.parse(await file.text()));
+        if (!confirm(`Restoring this backup will replace all current data.\nIt contains ${restored.staff.length} staff and ${restored.holidays.length} holiday entries. Continue?`)) return;
+        downloadJSON(data, backupName('automatic-backup-before-restore'));
+        data = restored;
+        saveData(); renderAll(); toast('백업을 복원했습니다');
+      } catch (error) {
+        console.error(error);
+        toast('복원 실패: 올바른 일정 백업 파일이 아닙니다');
+      }
+    });
+
+    el('scheduleMonth').value = currentMonth();
+    el('displayMonth').value = currentMonth();
+    renderAll();
+  })();
+  </script>
+</body>
+</html>
