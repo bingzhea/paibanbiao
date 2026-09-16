@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
   <meta name="description" content="离线使用的人员休假排班与月度统计工具">
   <title>工作排班表</title>
   <style>
@@ -31,8 +32,10 @@
     button, select, input { min-height: 42px; }
     button { cursor: pointer; }
     button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid rgba(34,91,202,.25); outline-offset: 2px; }
-    .topbar { background: linear-gradient(115deg, #102b5c, #1d4a96); color: white; padding: 22px clamp(18px, 4vw, 48px); box-shadow: var(--shadow); }
+    .topbar { position: relative; background: linear-gradient(115deg, #102b5c, #1d4a96); color: white; padding: 22px clamp(18px, 4vw, 48px); box-shadow: var(--shadow); }
     .topbar-inner { max-width: 1500px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: flex; align-items: center; min-width: 0; padding-left: clamp(14px, 3vw, 30px); }
+    .brand-logo { position: absolute; left: 0; top: 22px; display: block; width: clamp(130px, 12vw, 170px); height: auto; }
     h1 { margin: 0; font-size: clamp(1.5rem, 3vw, 2.15rem); letter-spacing: .04em; }
     .subtitle { margin: 4px 0 0; color: #d7e5ff; font-size: .92rem; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 9px; }
@@ -138,9 +141,12 @@
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <div>
-        <h1>工作排班表</h1>
-        <p class="subtitle">人员、节假日与月度休假排班</p>
+      <div class="brand">
+        <img class="brand-logo" src="./assets/cxybbw-logo-web.png" alt="CXYBBW">
+        <div>
+          <h1>工作排班表</h1>
+          <p class="subtitle">人员、节假日与月度休假排班</p>
+        </div>
       </div>
       <div class="toolbar" aria-label="数据操作">
         <select class="language-select" id="languageSelect" aria-label="选择语言">
