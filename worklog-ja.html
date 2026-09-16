@@ -114,6 +114,12 @@
     .toast.show { opacity: 1; transform: none; }
     .notice { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--amber-soft); color: #7d4b08; font-size: .86rem; }
     .hidden { display: none !important; }
+    .site-footer { border-top: 1px solid var(--line); background: var(--paper); padding: 30px 18px 34px; text-align: center; color: var(--muted); }
+    .site-footer h2 { margin: 0; color: var(--navy); font-size: 1.05rem; }
+    .site-footer p { margin: 5px 0 14px; font-size: .86rem; }
+    .site-footer nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 24px; }
+    .site-footer a { color: #52627d; font-size: .88rem; text-decoration: none; }
+    .site-footer a:hover { color: var(--blue); text-decoration: underline; }
     @media (max-width: 1040px) {
       .grid, .schedule-grid { grid-template-columns: 1fr; }
       .topbar-inner { align-items: flex-start; flex-direction: column; }
@@ -128,7 +134,7 @@
       .toolbar .btn { flex: 1; }
     }
   </style>
-+  <script>
+  <script>
     var _hmt = _hmt || [];
     (function() {
       var hm = document.createElement("script");
@@ -221,6 +227,15 @@
       </div>
     </section>
   </main>
+  <footer class="site-footer">
+    <h2>チームの休暇予定をもっと簡単に</h2>
+    <p>スタッフ、祝日、月ごとの休暇予定をまとめて管理</p>
+    <nav aria-label="フッターナビゲーション">
+      <a href="#scheduleTitle">ご利用ガイド</a>
+      <a href="#maintainTitle">このサイトについて</a>
+      <a href="mailto:cxybbw@163.com">お問い合わせ：cxybbw@163.com</a>
+    </nav>
+  </footer>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
